@@ -1,0 +1,7 @@
+titanic_train:
+  type: pandas.CSVDataset
+  filepath: data/01_raw/Titanic_train.csv
+
+datasets_orders:
+  type: pandas.CSVDataset
+  filepath: data/01_raw/Datasets_orders.csv
