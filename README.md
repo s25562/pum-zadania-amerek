@@ -10,6 +10,79 @@ This is your new Kedro project with PySpark setup, which was generated using `ke
 
 Take a look at the [Kedro documentation](https://docs.kedro.org) to get started.
 
+## Zadanie 2 – Model ML i połączenie datasetów w jednym pipeline
+
+Zadanie zrealizowano w tym samym projekcie Kedro co Zadanie 1, na branchu `zadanie-2`.
+Raport z analizy EDA (Zadanie 1) znajduje się w [`raport.md`](raport.md).
+
+Do projektu dodano pipeline `data_science`, który przetwarza oba datasety, trenuje modele
+klasyfikacyjne i ocenia ich jakość.
+
+### Jak datasety są połączone w pipeline
+
+Zastosowano strategię „osobne gałęzie, wspólny pipeline”. Zbiory `Titanic_train.csv`
+i `Datasets_orders.csv` pochodzą z różnych domen i nie mają wspólnego klucza, więc nie są
+łączone joinem. Każdy z nich ma własną gałąź (prepare → train → evaluate), a pipeline
+`data_science` składa je w jeden graf (`titanic + orders`). Pipeline jest zarejestrowany
+w `__default__` (`src/pum_zadania_amerek/pipeline_registry.py`), więc jedno polecenie
+`kedro run` uruchamia cały przepływ.
+
+```
+titanic_train ───► prepare_titanic ─► train_titanic ─► evaluate_titanic ─► metryki + wykres
+datasets_orders ─► prepare_orders ──► train_orders ──► evaluate_orders ──► metryki + wykres
+```
+
+Obie gałęzie używają tego samego schematu kroków i są parametryzowane osobnymi blokami
+(`titanic`, `orders`) w `conf/base/parameters_data_science.yml`.
+
+### Modele
+
+| Dataset | Cel | Model | Preprocessing |
+|---|---|---|---|
+| Titanic | `Survived` | Random Forest (200 drzew) | usunięcie `PassengerId`, `Name`, `Ticket`, `Cabin`; mediana dla `Age`; kodowanie `Sex` i `Embarked` |
+| Datasets_orders | `big_order` (ilość ≥ 3) | Random Forest (200 drzew, `class_weight=balanced`) | usunięcie duplikatów, ujednolicenie kategorii, cecha `month`, usunięcie `tshirt_quantity` (data leakage), kodowanie one-hot |
+
+### Struktura katalogów
+
+```
+conf/base/
+  catalog.yml                       # definicje danych, modeli i raportów
+  parameters_data_science.yml       # parametry obu gałęzi
+data/
+  01_raw/                           # surowe CSV
+  03_primary/                       # dane po preprocessingu
+  06_models/                        # wytrenowane modele (.pkl)
+  08_reporting/                     # metryki (.json) i confusion matrix (.png)
+src/pum_zadania_amerek/pipelines/
+  data_science/
+    nodes.py                        # funkcje: preprocessing, trening, ewaluacja
+    pipeline.py                     # połączenie node'ów w graf
+docs/                               # wykresy i schemat pipeline'u
+raport.md                           # raport z Zadania 1
+model_summary.md                    # metryki, confusion matrix, wnioski (Zadanie 2)
+```
+
+Katalog `data/` jest ignorowany przez git zgodnie z konwencją Kedro. Pliki
+`Titanic_train.csv` i `Datasets_orders.csv` należy umieścić w `data/01_raw/`.
+
+### Uruchomienie
+
+```bash
+pip install -r requirements.txt
+kedro run                           # cały pipeline
+kedro run --pipeline=data_science   # tylko modele
+kedro viz run                       # wizualizacja grafu
+```
+
+### Wyniki (skrót)
+
+| Dataset | Accuracy | Precision | Recall | F1 |
+|---|---|---|---|---|
+| Titanic | 0,810 | 0,787 | 0,696 | 0,738 |
+| Datasets_orders | 0,520 | 0,307 | 0,492 | 0,378 |
+
+Pełne metryki, macierze pomyłek i wnioski znajdują się w [`model_summary.md`](model_summary.md).
+
 ## Rules and guidelines
 
 In order to get the best out of the template:
@@ -100,3 +173,4 @@ To automatically strip out all output cell contents before committing to `git`, 
 ## Package your Kedro project
 
 [Further information about building project documentation and packaging your project](https://docs.kedro.org/en/stable/tutorial/package_a_project.html)
+
