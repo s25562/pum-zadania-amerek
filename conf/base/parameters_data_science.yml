@@ -1,0 +1,14 @@
+titanic:
+  target: Survived
+  drop_columns: [PassengerId, Name, Ticket, Cabin]
+  test_size: 0.2
+  random_state: 42
+  n_estimators: 200
+
+orders:
+  big_order_threshold: 3
+  drop_columns: [order_id, customer_id, order_date, tshirt_quantity]
+  test_size: 0.2
+  random_state: 42
+  n_estimators: 200
+  class_weight: balanced

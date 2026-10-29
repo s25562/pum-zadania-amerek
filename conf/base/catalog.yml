@@ -1,3 +1,4 @@
+# Raw data
 titanic_train:
   type: pandas.CSVDataset
   filepath: data/01_raw/Titanic_train.csv
@@ -5,3 +6,38 @@ titanic_train:
 datasets_orders:
   type: pandas.CSVDataset
   filepath: data/01_raw/Datasets_orders.csv
+
+# After processing
+titanic_train_primary:
+  type: pandas.CSVDataset
+  filepath: data/03_primary/titanic_train_primary.csv
+
+datasets_orders_primary:
+  type: pandas.CSVDataset
+  filepath: data/03_primary/datasets_orders_primary.csv
+
+# Models
+titanic_train_model:
+  type: pickle.PickleDataset
+  filepath: data/06_models/titanic_train_rf.pkl
+
+datasets_orders_model:
+  type: pickle.PickleDataset
+  filepath: data/06_models/datasets_orders_rf.pkl
+
+# Raporting
+titanic_train_metrics:
+  type: json.JSONDataset
+  filepath: data/08_reporting/titanic_train_metrics.json
+
+datasets_orders_metrics:
+  type: json.JSONDataset
+  filepath: data/08_reporting/datasets_orders_metrics.json
+
+titanic_train_confusion_matrix:
+  type: matplotlib.MatplotlibDataset
+  filepath: data/08_reporting/titanic_train_confusion_matrix.png
+
+datasets_orders_confusion_matrix:
+  type: matplotlib.MatplotlibDataset
+  filepath: data/08_reporting/datasets_orders_confusion_matrix.png
